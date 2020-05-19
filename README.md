@@ -1,4 +1,4 @@
-# vercel-go-bridge
+# go-bridge
 
 Bridge for `@vercel/go`.
 
@@ -9,7 +9,7 @@ package main
 
 import (
 	"net/http"
-	bridge "github.com/vercel/vercel-go-bridge/go/bridge"
+	bridge "github.com/vercel/go-bridge/go/bridge"
 )
 
 func main() {
