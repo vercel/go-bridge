@@ -14,6 +14,7 @@ type HttpHandler struct {
 
 func (h *HttpHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	w.Header().Add("X-Foo", "bar")
+	w.Header().Add("X-Foo", "baz")
 	w.WriteHeader(404)
 	w.Write([]byte("test"))
 }
@@ -24,7 +25,7 @@ func TestServe(t *testing.T) {
 		"test.com",
 		"/path?foo=bar",
 		"POST",
-		map[string]string{"Content-Length": "1", "X-Foo": "bar"},
+		map[string][]string{"Content-Length": []string{"1"}, "X-Foo": []string{"bar"}},
 		"",
 		"a",
 	}

@@ -12,12 +12,12 @@ import (
 )
 
 type Request struct {
-	Host     string            `json:"host"`
-	Path     string            `json:"path"`
-	Method   string            `json:"method"`
-	Headers  map[string]string `json:"headers"`
-	Encoding string            `json:"encoding,omitempty"`
-	Body     string            `json:"body"`
+	Host     string              `json:"host"`
+	Path     string              `json:"path"`
+	Method   string              `json:"method"`
+	Headers  map[string][]string `json:"headers"`
+	Encoding string              `json:"encoding,omitempty"`
+	Body     string              `json:"body"`
 }
 
 type Response struct {
@@ -65,9 +65,10 @@ func Serve(handler http.Handler, req *Request) (res Response, err error) {
 		return
 	}
 
-	for k, v := range req.Headers {
-		r.Header.Add(k, v)
-		switch strings.ToLower(k) {
+	for k, vv := range req.Headers {
+		for _, v := range vv {
+			r.Header.Add(k, v)
+			switch strings.ToLower(k) {
 			case "host":
 				// we need to set `Host` in the request
 				// because Go likes to ignore the `Host` header
@@ -79,6 +80,7 @@ func Serve(handler http.Handler, req *Request) (res Response, err error) {
 			case "x-forwarded-for":
 			case "x-real-ip":
 				r.RemoteAddr = v
+			}
 		}
 	}
 
