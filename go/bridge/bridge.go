@@ -4,20 +4,37 @@ import (
 	"bytes"
 	"encoding/base64"
 	"encoding/json"
-	"github.com/aws/aws-lambda-go/events"
-	"github.com/aws/aws-lambda-go/lambda"
 	"net/http"
 	"strconv"
 	"strings"
+
+	"github.com/aws/aws-lambda-go/events"
+	"github.com/aws/aws-lambda-go/lambda"
 )
 
 type Request struct {
-	Host     string              `json:"host"`
-	Path     string              `json:"path"`
-	Method   string              `json:"method"`
-	Headers  map[string][]string `json:"headers"`
-	Encoding string              `json:"encoding,omitempty"`
-	Body     string              `json:"body"`
+	Host     string                     `json:"host"`
+	Path     string                     `json:"path"`
+	Method   string                     `json:"method"`
+	Headers  map[string]ReqHeaderValues `json:"headers"`
+	Encoding string                     `json:"encoding,omitempty"`
+	Body     string                     `json:"body"`
+}
+
+type ReqHeaderValues []string
+
+func (h *ReqHeaderValues) UnmarshalJSON(b []byte) error {
+	var s string
+	if err := json.Unmarshal(b, &s); err == nil {
+		*h = ReqHeaderValues([]string{s})
+		return nil
+	}
+	var strs []string
+	if err := json.Unmarshal(b, &strs); err != nil {
+		return err
+	}
+	*h = strs
+	return nil
 }
 
 type Response struct {
@@ -113,13 +130,18 @@ func Serve(handler http.Handler, req *Request) (res Response, err error) {
 
 // Maps the `APIGatewayProxyRequest` to a `Request` instance and invokes `Serve()`
 func handler(event events.APIGatewayProxyRequest) (res Response, err error) {
-	var req Request
-	err = json.Unmarshal([]byte(event.Body), &req)
+	req, err := ParseJsonIntoRequest(event.Body)
 	if err != nil {
 		return
 	}
 	res, err = Serve(userHandler, &req)
 	return
+}
+
+func ParseJsonIntoRequest(body string) (Request, error) {
+	var req Request
+	err := json.Unmarshal([]byte(body), &req)
+	return req, err
 }
 
 // Starts the Lambda

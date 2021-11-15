@@ -25,7 +25,7 @@ func TestServe(t *testing.T) {
 		"test.com",
 		"/path?foo=bar",
 		"POST",
-		map[string][]string{"Content-Length": []string{"1"}, "X-Foo": []string{"bar"}},
+		map[string]ReqHeaderValues{"Content-Length": ReqHeaderValues{"1"}, "X-Foo": ReqHeaderValues{"bar"}},
 		"",
 		"a",
 	}
@@ -34,11 +34,58 @@ func TestServe(t *testing.T) {
 		t.Fail()
 	}
 	if res.StatusCode != 404 {
+		fmt.Printf("status code: %d\n", res.StatusCode)
+		fmt.Printf("header: %v\n", res.Headers)
+		fmt.Printf("base64 body: %s\n", res.Body)
 		t.Fail()
 	}
-	fmt.Printf("status code: %d\n", res.StatusCode)
-	fmt.Printf("header: %v\n", res.Headers)
-	fmt.Printf("base64 body: %s\n", res.Body)
+
 	body, err := base64.StdEncoding.DecodeString(res.Body)
-	fmt.Printf("body: %s\n", body)
+	if string(body) != "test" {
+
+		fmt.Printf("body: %s\n", body)
+		t.Fail()
+	}
+}
+
+func TestParseJsonIntoRequest(t *testing.T) {
+	body := `{
+		"method": "GET",
+		"headers": {
+		  "host": "example.com",
+		  "x-real-ip": "0.0.0.0",
+		  "foo": [
+			"bar",
+			"baz"
+		  ],
+		  "x-forwarded-host": "example.com",
+		  "accept": "*/*",
+		  "x-forwarded-proto": "https",
+		  "x-vercel-deployment-url": "example.com",
+		  "x-forwarded-for": "0.0.0.0",
+		  "user-agent": "curl/7.64.1",
+		  "x-vercel-forwarded-for": "0.0.0.0",
+		  "x-vercel-id": "dev1::pkmmp-1636755907234-8ee8499e420c"
+		},
+		"path": "/",
+		"host": "example.com"
+	  }`
+	req, err := ParseJsonIntoRequest(body)
+
+	if err != nil {
+		fmt.Printf("err: %v\n", err)
+		t.Fail()
+	}
+	if req.Host != "example.com" {
+		t.Errorf("Unexpected host: %s", req.Host)
+	}
+	if req.Headers["host"][0] != "example.com" {
+		t.Errorf("Unexpected header host: %s", req.Headers["host"][0])
+	}
+	if req.Headers["foo"][0] != "bar" {
+		t.Errorf("Unexpected header foo[0]: %s", req.Headers["foo"][0])
+	}
+	if req.Headers["foo"][1] != "baz" {
+		t.Errorf("Unexpected header foo[1]: %s", req.Headers["foo"][1])
+	}
 }
