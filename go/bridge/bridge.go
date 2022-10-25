@@ -13,12 +13,13 @@ import (
 )
 
 type Request struct {
-	Host     string                     `json:"host"`
-	Path     string                     `json:"path"`
-	Method   string                     `json:"method"`
-	Headers  map[string]ReqHeaderValues `json:"headers"`
-	Encoding string                     `json:"encoding,omitempty"`
-	Body     string                     `json:"body"`
+	Host       string                     `json:"host"`
+	Path       string                     `json:"path"`
+	Method     string                     `json:"method"`
+	Headers    map[string]ReqHeaderValues `json:"headers"`
+	Encoding   string                     `json:"encoding,omitempty"`
+	Body       string                     `json:"body"`
+	RequestURI string
 }
 
 type ReqHeaderValues []string
@@ -78,6 +79,7 @@ func Serve(handler http.Handler, req *Request) (res Response, err error) {
 	}
 
 	r, err := http.NewRequest(req.Method, req.Path, bytes.NewReader(body))
+
 	if err != nil {
 		return
 	}
@@ -141,6 +143,8 @@ func handler(event events.APIGatewayProxyRequest) (res Response, err error) {
 func ParseJsonIntoRequest(body string) (Request, error) {
 	var req Request
 	err := json.Unmarshal([]byte(body), &req)
+	req.RequestURI = req.Path
+
 	return req, err
 }
 
