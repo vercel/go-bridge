@@ -28,6 +28,7 @@ func TestServe(t *testing.T) {
 		map[string]ReqHeaderValues{"Content-Length": ReqHeaderValues{"1"}, "X-Foo": ReqHeaderValues{"bar"}},
 		"",
 		"a",
+		"/path?foo=bar",
 	}
 	res, err := Serve(h, req)
 	if err != nil {
@@ -67,7 +68,7 @@ func TestParseJsonIntoRequest(t *testing.T) {
 		  "x-vercel-forwarded-for": "0.0.0.0",
 		  "x-vercel-id": "dev1::pkmmp-1636755907234-8ee8499e420c"
 		},
-		"path": "/",
+		"path": "/about",
 		"host": "example.com"
 	  }`
 	req, err := ParseJsonIntoRequest(body)
@@ -76,6 +77,14 @@ func TestParseJsonIntoRequest(t *testing.T) {
 		fmt.Printf("err: %v\n", err)
 		t.Fail()
 	}
+
+	if req.Path != "/about" {
+		t.Errorf("Unexpected Path: %s", req.RequestURI)
+	}
+	if req.RequestURI != "/about" {
+		t.Errorf("Unexpected RequestURI: %s", req.RequestURI)
+	}
+
 	if req.Host != "example.com" {
 		t.Errorf("Unexpected host: %s", req.Host)
 	}
