@@ -13,6 +13,8 @@ type HttpHandler struct {
 }
 
 func (h *HttpHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	w.Header().Add("X-RequestURI", r.RequestURI)
+
 	w.Header().Add("X-Foo", "bar")
 	w.Header().Add("X-Foo", "baz")
 	w.WriteHeader(404)
@@ -38,6 +40,11 @@ func TestServe(t *testing.T) {
 		fmt.Printf("status code: %d\n", res.StatusCode)
 		fmt.Printf("header: %v\n", res.Headers)
 		fmt.Printf("base64 body: %s\n", res.Body)
+		t.Fail()
+	}
+
+	if res.Headers["X-Requesturi"][0] != "/path" {
+		fmt.Printf("expected response header \"X-RequestURI\" == \"%s\"\n", res.Headers["X-RequestURI"][0])
 		t.Fail()
 	}
 

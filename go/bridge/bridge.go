@@ -80,6 +80,10 @@ func Serve(handler http.Handler, req *Request) (res Response, err error) {
 
 	r, err := http.NewRequest(req.Method, req.Path, bytes.NewReader(body))
 
+	// NewRequest does not populate	RequestURI,
+	// but some Go modules still expect this to exist
+	r.RequestURI = r.URL.Path
+
 	if err != nil {
 		return
 	}
