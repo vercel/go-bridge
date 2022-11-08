@@ -43,7 +43,7 @@ func TestServe(t *testing.T) {
 		t.Fail()
 	}
 
-	if res.Headers["X-RequestURI"][0] != "/path" {
+	if res.Headers["X-Requesturi"][0] != "/path" {
 		fmt.Printf("expected response header \"X-RequestURI\" == \"%s\"\n", res.Headers["X-RequestURI"][0])
 		t.Fail()
 	}
